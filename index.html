@@ -4,29 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CSV to SQL</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 </head>
 <body>
     <label for="table-name">Enter Table Name:</label>
     <input type="text" id="table-name" />
     <br>
     <input type="file" id="csv-input" />
+    <div id="checkboxes" style="margin-top: 10px;"></div>
     <button onclick="handleGenerateSQL()">Generate SQL</button>
     <button id="copy-button" onclick="copyToClipboard()" style="display: none;">Copy to Clipboard</button>
     <button id="clear-button" onclick="clearForm()" style="display: none;">Clear</button>
     <div id="output" style="white-space: pre;"></div>
 
     <script>
+        let dynamicTypingOptions = {};
         function handleFileSelect(event) {
             const file = event.target.files[0];
 
             Papa.parse(file, {
                 header: true,
-                dynamicTyping: false,
                 complete: function(results) {
-                    displaySQL(results.data);
+                    displayCheckboxes(results.meta.fields);
+                    //displaySQL(results.data);
                 }
             });
+        }
+
+        function displayCheckboxes(headers) {
+            const checkboxesDiv = document.getElementById('checkboxes');
+            checkboxesDiv.innerHTML = 'Disable Dynamic Typing for:';
+            
+            headers.forEach(header => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = header;
+                checkbox.name = header;
+                checkbox.checked = false;
+                
+                const label = document.createElement('label');
+                label.htmlFor = header;
+                label.appendChild(document.createTextNode(header));
+
+                checkboxesDiv.appendChild(checkbox);
+                checkboxesDiv.appendChild(label);
+            });
+
+            handleGenerateSQL();
         }
 
         function displaySQL(data) {
@@ -36,7 +60,6 @@
                 return;
             }
 
-            const columnNames = Object.keys(data[0]);
             const nonEmptyRows = data.filter(row => Object.values(row).some(value => value !== null && value !== undefined && value !== ''));
 
             if (nonEmptyRows.length === 0) {
@@ -46,6 +69,7 @@
                 return;
             }
 
+            const columnNames = Object.keys(nonEmptyRows[0]);
             const values = nonEmptyRows.map(row => `(${columnNames.map(col => formatValue(row[col])).join(', ')})`);
 
             const sqlStatement = `INSERT INTO ${tableName} (${columnNames.join(', ')}) VALUES\n${values.join(',\n')};`;
@@ -63,20 +87,18 @@
         }
 
         function formatValue(value) {
-            console.log(value, ' -- type ', typeof value);
-            // Handle null values as SQL NULL without quotes
+            // Handle null values as SQL NULL
             if (value === null || value === 'NULL') {
                 return 'NULL';
-            } else if (typeof value === 'number' && /^0\d+/.test(value.toString())) {
-                // Convert numbers with leading zeros to strings
-                return `'${value}'`;
-            } else if (typeof value === 'string') {
-                // Wrap strings in single quotes
-                return `'${value}'`;
-            } else {
-                // For other data types, use the value as is
-                return value;
             }
+
+            // If it's a string, wrap it in single quotes
+            if (typeof value === 'string') {
+                return `'${value}'`;
+            }
+
+            // If it's not a string, return the value as is
+            return value;
         }
 
         function copyToClipboard() {
@@ -96,15 +118,29 @@
             document.getElementById('output').textContent = '';
             document.getElementById('copy-button').style.display = 'none';
             document.getElementById('clear-button').style.display = 'none';
+            dynamicTypingOptions = {};
+            const checkboxesDiv = document.getElementById('checkboxes');
+            checkboxesDiv.innerHTML = '';
         }
 
         document.getElementById('csv-input').addEventListener('change', handleFileSelect);
 
         function handleGenerateSQL() {
-            // Trigger SQL generation when the button is clicked
             const fileInput = document.getElementById('csv-input');
             if (fileInput.files.length > 0) {
-                handleFileSelect({ target: { files: [fileInput.files[0]] } });
+                const file = fileInput.files[0];
+
+                document.querySelectorAll('#checkboxes input[type="checkbox"]').forEach(checkbox => {
+                    dynamicTypingOptions[checkbox.name] = !checkbox.checked;
+                });
+
+                Papa.parse(file, {
+                    header: true,
+                    dynamicTyping: dynamicTypingOptions,
+                    complete: function (results) {
+                        displaySQL(results.data);
+                    }
+                });
             } else {
                 alert("Please choose a CSV file first.");
             }
