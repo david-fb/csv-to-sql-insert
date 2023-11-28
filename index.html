@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to SQL</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <label for="table-name">Enter Table Name:</label>
+    <input type="text" id="table-name" />
+    <br>
+    <input type="file" id="csv-input" />
+    <button onclick="handleGenerateSQL()">Generate SQL</button>
+    <button id="copy-button" onclick="copyToClipboard()" style="display: none;">Copy to Clipboard</button>
+    <button id="clear-button" onclick="clearForm()" style="display: none;">Clear</button>
+    <div id="output" style="white-space: pre;"></div>
+
+    <script>
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: false,
+                complete: function(results) {
+                    displaySQL(results.data);
+                }
+            });
+        }
+
+        function displaySQL(data) {
+            const tableName = document.getElementById('table-name').value;
+            if (!tableName) {
+                alert("Please enter a table name.");
+                return;
+            }
+
+            const columnNames = Object.keys(data[0]);
+            const nonEmptyRows = data.filter(row => Object.values(row).some(value => value !== null && value !== undefined && value !== ''));
+
+            if (nonEmptyRows.length === 0) {
+                alert("No data to generate SQL.");
+                document.getElementById('copy-button').style.display = 'none';
+                document.getElementById('clear-button').style.display = 'none';
+                return;
+            }
+
+            const values = nonEmptyRows.map(row => `(${columnNames.map(col => formatValue(row[col])).join(', ')})`);
+
+            const sqlStatement = `INSERT INTO ${tableName} (${columnNames.join(', ')}) VALUES\n${values.join(',\n')};`;
+
+            const outputDiv = document.getElementById('output');
+            outputDiv.textContent = sqlStatement;
+
+            // Show or hide the "Copy to Clipboard" button based on data presence
+            const copyButton = document.getElementById('copy-button');
+            copyButton.style.display = nonEmptyRows.length > 0 ? 'inline-block' : 'none';
+
+            // Show or hide the "Clear" button based on data or file presence
+            const clearButton = document.getElementById('clear-button');
+            clearButton.style.display = (nonEmptyRows.length > 0 || document.getElementById('csv-input').value !== '') ? 'inline-block' : 'none';
+        }
+
+        function formatValue(value) {
+            console.log(value, ' -- type ', typeof value);
+            // Handle null values as SQL NULL without quotes
+            if (value === null || value === 'NULL') {
+                return 'NULL';
+            } else if (typeof value === 'number' && /^0\d+/.test(value.toString())) {
+                // Convert numbers with leading zeros to strings
+                return `'${value}'`;
+            } else if (typeof value === 'string') {
+                // Wrap strings in single quotes
+                return `'${value}'`;
+            } else {
+                // For other data types, use the value as is
+                return value;
+            }
+        }
+
+        function copyToClipboard() {
+            const outputDiv = document.getElementById('output');
+            const range = document.createRange();
+            range.selectNode(outputDiv);
+            window.getSelection().removeAllRanges();
+            window.getSelection().addRange(range);
+            document.execCommand('copy');
+            window.getSelection().removeAllRanges();
+            alert('SQL statement copied to clipboard!');
+        }
+
+        function clearForm() {
+            document.getElementById('table-name').value = '';
+            document.getElementById('csv-input').value = '';
+            document.getElementById('output').textContent = '';
+            document.getElementById('copy-button').style.display = 'none';
+            document.getElementById('clear-button').style.display = 'none';
+        }
+
+        document.getElementById('csv-input').addEventListener('change', handleFileSelect);
+
+        function handleGenerateSQL() {
+            // Trigger SQL generation when the button is clicked
+            const fileInput = document.getElementById('csv-input');
+            if (fileInput.files.length > 0) {
+                handleFileSelect({ target: { files: [fileInput.files[0]] } });
+            } else {
+                alert("Please choose a CSV file first.");
+            }
+        }
+    </script>
+</body>
+</html>
