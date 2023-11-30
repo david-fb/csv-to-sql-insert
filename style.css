@@ -1,0 +1,197 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --dark-color: #121212; 
+    --background-color: #1A1C21; 
+    --text-color: #FFFFFF; 
+    --primary-accent-color: #3498db; 
+    --secondary-accent-color: #2ecc71; 
+    --highlight-color: #e74c3c; 
+    --subtle-accent-color: #7f8c8d; 
+
+    /* Light Mode Colors (fallback) */
+    --light-background-color: #FFFFFF; 
+    --light-text-color: #333333; 
+    --light-primary-accent-color: #3498db; /* Blue for Light Mode */
+    --light-secondary-accent-color: #2ecc71; 
+    --light-highlight-color: #e74c3c; 
+    --light-subtle-accent-color: #7f8c8d; 
+}
+  
+body {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: 'Roboto', sans-serif;
+}
+  
+@media (prefers-color-scheme: light) {
+    :root {
+        --background-color: var(--light-background-color);
+        --text-color: var(--light-text-color);
+        --primary-accent-color: var(--light-primary-accent-color);
+        --secondary-accent-color: var(--light-secondary-accent-color);
+        --highlight-color: var(--light-highlight-color);
+        --subtle-accent-color: var(--light-subtle-accent-color);
+    }
+}
+
+
+.container{
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 20px;
+    padding-bottom: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.header #table-name {
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid var(--subtle-accent-color);
+    border-radius: 5px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    border-color: var(--subtle-accent-color);
+}
+
+.header #table-name:focus {
+    outline: none;
+    border-color: var(--primary-accent-color);
+  }
+
+.checkboxes {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.checkboxes li {
+    display: flex;
+    gap: 6px;
+}
+
+.checkboxes-container {
+    display: none;
+}
+
+.output {
+    display: none;
+}
+
+.output-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    background-color: var(--highlight-color);
+    padding: 4px 8px;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+}
+.output-header button {
+    background: none;
+    border: none;
+    outline: unset;
+    color: var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.output-header button img {
+    width: 16px;
+}
+
+.output-content {
+    background-color: var(--dark-color);
+    white-space: pre;
+    padding: 16px;
+    overflow-x: auto;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    border-top: none;
+}
+
+.output-content::-webkit-scrollbar {
+    height: 5px; /* Adjust the height of the scrollbar */
+}
+
+.output-content::-webkit-scrollbar-track {
+    background-color: var(--background-color);
+}
+
+.output-content::-webkit-scrollbar-thumb {
+    background-color: var(--subtle-accent-color);
+    border-radius: 4px;
+}
+
+.output-content::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-accent-color);
+}
+
+
+.controls button {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+
+    background-color: var(--primary-accent-color);
+    color: var(--text-color);
+}
+
+.controls button:hover {
+    filter: brightness(90%);
+}
+
+/* Basic File Input Styles */
+.file-input-container {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+}
+
+.file-input {
+    font-size: 16px;
+    color: var(--text-color);
+    padding: 10px;
+    cursor: pointer;
+    background-color: var(--background-color);
+    border: 1px solid var(--subtle-accent-color);
+    border-radius: 5px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border-color: var(--subtle-accent-color);
+}
+
+.file-input:hover {
+    background-color: var(--subtle-accent-color);
+}
+
+@media (max-width: 1200px) {
+    .container{
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+}
